@@ -1,0 +1,8 @@
+{
+  "priority": {
+    "mentors": 1,
+    "mentees": 2
+  },
+  "Maximum Number of Slots can be taken by a Mentee": 3,
+  "Maximum Number of Slots can be taken by a Mentor": -1
+}
