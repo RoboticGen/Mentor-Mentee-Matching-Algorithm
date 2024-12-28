@@ -3,8 +3,10 @@ import os, csv, json, datetime
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TABLES = os.path.join(BASE_DIR, 'tables')
 mentoring_slots_table = os.path.join(TABLES, 'Mentoring-Slots.csv')
+mentors_table = os.path.join(TABLES, 'Mentors-List.csv')
 configuration_file = os.path.join(BASE_DIR, 'configs.json')
 csv_data:list[dict] = []
+menstors_data:list[dict] = []
 mentors:set = set()
 slots:set = set()
 students:set = set()
@@ -57,32 +59,25 @@ for mentor in mentors:
 
 # Gale-Shapley Algorithm for Matching Mentors and Students
 def gale_shapley(mentors:set, students:set, mentor_availabilities:dict, student_preferences:dict, max_students_per_mentor:int = 5)->dict:
-    mentor_student_pairs = {}  # Mentor -> List of Students
-    student_mentor_pairs = {}  # Student -> Mentor
-    
-    # Initialize the mentors' match lists (empty lists to store matched students)
-    for mentor in mentors:
-        mentor_student_pairs[mentor] = []
-    
-    free_students = list(students)  # Queue of free students (initially all students)
-    
-    while free_students:
-        student = free_students.pop(0)  # Get the first free student
-        preferences = student_preferences[student]
-        
-        for preferred_mentor in preferences:
-            # Check if the mentor has available slots
-            if len(mentor_student_pairs[preferred_mentor]) < max_students_per_mentor:
-                # Mentor has space for this student
-                mentor_student_pairs[preferred_mentor].append(student)
-                student_mentor_pairs[student] = preferred_mentor
-                break  # Once matched, the student is no longer free
-            else:
-                # Mentor is already full, skip this mentor and check the next one
-                continue
-    
-    # Return the final mentor-student match pairs
-    return mentor_student_pairs, student_mentor_pairs
+    mentor_matches = {}
+    student_matches = {}
+    student_preferences = {student: set(preferences) for student, preferences in student_preferences.items()}
+    mentor_availabilities = {mentor: set(availabilities) for mentor, availabilities in mentor_availabilities.items()}
+
+    while len(mentor_matches) < len(mentors):
+        for mentor in mentors:
+            if mentor not in mentor_matches:
+                for availability in mentor_availabilities[mentor]:
+                    for student in student_preferences:
+                        if student not in student_matches:
+                            if availability in student_preferences[student]:
+                                mentor_matches[mentor] = student
+                                student_matches[student] = mentor
+                                break
+                    if mentor in mentor_matches:
+                        break
+
+    return mentor_matches
 
 
 # Run the Gale-Shapley algorithm
